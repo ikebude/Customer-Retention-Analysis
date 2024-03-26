@@ -1,0 +1,256 @@
+## Customer Retention Analysis (Churn analysis) using python.
+### The PwC Switzerland Churn Dataset
+#### Explanatory Data analysis to understand the reasons for churning among members and the kinds of customers we should examine as "soon to churn". Using the Churn dataset provided in the Pwc Virtual Internship program on Forage.
+Lets take a peak look at the dataset we would be using, we load the important libraries and bring our data.
+```{r}
+pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
+               ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
+               stringr, tidyr, reticulate, tidyverse, psych)
+```
+```{r}
+library(readxl)
+ChurnData <- read_excel("C:/Users/user/Desktop/BI Analytics Projects/ChurnDataset.xlsx")
+```
+```{r}
+CR <- ChurnData
+head(CR)
+```
+Lets look at the column names.
+```{r}
+colnames(CR)
+```
+The Type of data each columns contains.
+```{r}
+str(CR)
+```
+**Unlike the Python analysis, the TotalCharges were Recorded as a Number**
+Checking the Descriptive Statistics of the Numeric Variables in the Dataset
+```{r}
+describe(CR)
+```
+we can see from the dataset that 25% of the Monthly charges were higher than the mean. And 75% of the dataset were not Senior Citizens, although its just in 0's and 1's.
+
+Also 50% of the customers have spent less than 29 Months Since using Our services.
+```{r}
+ggplot(CR, aes(x = Churn)) + geom_bar(fill = 'Blue')
+```
+```{r}
+CR |> count(Churn)
+```
+Lets find out How they Differ in percentage
+```{r}
+CR |> group_by(Churn) |> summarise(Percent = 100 * n()/ nrow(CR))
+```
+There are more customers in the Services that havent churned yet
+So we look to take them out of the equation and focus on the 1869 of them that churned and the reason for that
+**The Null values of the dataframe**
+```{r}
+colSums(is.na(CR))
+```
+#### Missing Data - Initial Intuition
+General Thumb Rules:
+
+* For features with less missing values- can use regression to predict the missing values or fill with the mean of the values present, depending on the feature.
+* For features with very high number of missing values- it is better to drop those columns as they give very less insight on analysis.
+* As there's no thumb rule on what criteria do we delete the columns with high number of missing values, but generally you can delete the columns, if you have more than 30-40% of missing values. But again there's a catch here, for example, Is_Car & Car_Type, People having no cars, will obviously have Car_Type as NaN (null), but that doesn't make this column useless, so decisions has to be taken wisely.
+
+**We Create a new Dataframe for Manipulation, in our end the CR was created from the ChurnDataset, So we work With that.
+
+**Missing Value Treatement**
+
+THere are missing data values in the Totalcharges Column. Since the % of these records compared to total dataset is very low ie 0.15%, it is safe to ignore them from further processing.
+```{r}
+CR <- na.omit(CR)
+```
+```{r}
+# Group the tenure in bins of 12 months
+CR <- CR |> mutate(TenureGroup = cut(tenure, breaks = 6))
+```
+```{r}
+str(CR)
+```
+**Lets drop the data columns that we are not using for analysis**
+```{r}
+CR <- subset(CR,select = -c(customerID,tenure))
+```
+### Data Exploration
+**1.  Plot distibution of individual predictors by churn**
+
+Here we want to look at the Variables in the   dataset counts and totals based on the Targeted Variable and have a clear information. it is known as **UNIVARIATE ANALYSIS**
+```{r}
+ggplot(CR, aes(x = gender, fill = Churn)) + geom_bar(position = "dodge")
+```
+Lets look at the columns
+```{r}
+colnames(CR)
+```
+```{r}
+ggplot(CR, aes(x = SeniorCitizen, fill = Churn)) + geom_bar(position = 'dodge')
+```
+```{r}
+ggplot(CR, aes(x = Partner, fill = Churn)) + geom_bar(position = 'dodge')
+```
+Lets run them in a group grid, Naming all the Plots
+```{r}
+ggplot(CR, aes(x = Dependents, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = PhoneService, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = MultipleLines, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = InternetService, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = OnlineSecurity, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = OnlineBackup, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = DeviceProtection, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = TechSupport, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = StreamingTV, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = StreamingMovies, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = Contract, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = PaperlessBilling, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = PaymentMethod, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = numAdminTickets, fill = Churn)) + geom_bar(position = "dodge")
+```
+```{r}
+ggplot(CR, aes(x = numTechTickets, fill = Churn)) + geom_bar(position = "dodge")
+```
+
+```{r}
+ggplot(CR, aes(x = TenureGroup, fill = Churn)) + geom_bar(position = "dodge")
+```
+**2. Lets convert the target variable 'Churn'  in a binary numeric variable i.e. Yes=1 ; No = 0**
+```{r}
+#CR$Churn <- as.factor(mapvalues(CR$SeniorCitizen, from = c("0", "1"), to = c("No", "Yes")))
+CR$Churn <- ifelse(CR$Churn == "Yes",1,0)
+```
+```{r}
+ggplot(ChurnData, aes(x = Dependents, fill = Churn)) + geom_bar(position = "dodge")
+```
+**4.  Relationship between Monthly Charges and Total Charges, looking at the Dummy Variable Table.**
+```{r}
+ggplot(CR, aes(x = TotalCharges, y = MonthlyCharges)) + geom_point()
+```
+
+```{r}
+CCC <- CR |> filter(Churn == 1)
+plot(density(x = CCC$MonthlyCharges), col = 'red')
+CCC2 <- CR |> filter(Churn == 0)
+lines(density(x = CCC2$MonthlyCharges), col = 'blue')
+```
+
+```{r}
+plot(density(x = CCC$TotalCharges), col = 'red')
+lines(density(x = CCC2$TotalCharges), col = 'blue')
+```
+**Surprising insight as higher Churn at lower Total Charges**
+
+However if we combine the insights of 3 parameters i.e. Tenure, Monthly Charges & Total Charges then the picture is bit clear :- Higher Monthly Charge at lower tenure results into lower Total Charge. Hence, all these 3 factors viz **Higher Monthly Charge**,  **Lower tenure** and **Lower Total Charge** are linked to **High Churn**.
+>Mth = sns.kdeplot(CRA_Dummies.TotalCharges[(CRA_Dummies["Churn"] == 0) ],
+                color="Red", fill = True)
+Mth = sns.kdeplot(CRA_Dummies.TotalCharges[(CRA_Dummies["Churn"] == 1) ],
+                ax =Mth, color="Blue", fill= True)
+Mth.legend(["No Churn","Churn"],loc='upper right')
+Mth.set_ylabel('Density')
+Mth.set_xlabel('Total Charges')
+Mth.set_title('Total charges by churn')
+
+**Thats the python code for the kde plot above**
+**6. Build a corelation of all predictors with 'Churn'**
+```{r}
+library(correlationfunnel)
+CR_tbl <- CR |> binarize(n_bins = 5,thresh_infreq = 0.01,name_infreq = "OTHER",one_hot = TRUE)
+```
+```{r}
+CR_tbl
+```
+```{r}
+CR_cor <- CR_tbl |> correlate(Churn__1)
+```
+
+```{r}
+CR_cor
+```
+Visualization
+```{r}
+plot_correlation_funnel(CR_cor)
+```
+```{r eval=FALSE, include=FALSE}
+install.packages("Rtools", "plyr","corrplot", "gridExtra", "ggthemes", "caret", "MASS", "randomForest", "party")
+```
+#### Bivariate Analysis
+We are going to seperate the target variable into different dataframes to get the analysis of Churned customers and thse who didnt Churn.
+```{r}
+CR_0 <- CR |> filter(Churn == 0)
+CR_1 <- CR |> filter(Churn == 1)
+```
+Partner by Gender
+```{r}
+ggplot(CR_1, aes(x = Partner, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of partners by Gender(Churned Customers)")
+```
+```{r}
+ggplot(CR_0, aes(x = Partner, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of partners by Gender(UnChurned Customers)")
+```
+**From the above analysis we can see that more people tends to quit services when theyre not a partner compare to when they are, and more likely those without Partnership in the Unchurned group of Customers will more likely quit faster in the future.**
+
+
+#### Lets take other variables into case study in the Churned Customers Dataset
+```{r}
+ggplot(CR_1, aes(x = TechSupport, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of Tech Support by Gender(Churned Customers)")
+```
+```{r}
+ggplot(CR_1, aes(x = TenureGroup, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of Tenure Group by Gender(Churned Customers)")
+```
+```{r}
+ggplot(CR_1, aes(x = SeniorCitizen, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of partners by Gender(Churned Customers)")
+```
+```{r}
+ggplot(CR_1, aes(x = Contract, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of Contracts by Gender(Churned Customers)")
+```
+```{r}
+ggplot(CR_1, aes(x = PaymentMethod, fill = gender)) + geom_bar(position = "dodge") + labs(title = "Distribution of Payment Method by Gender(Churned Customers)")
+```
+### CONCLUSION
+
+These are some of the quick insights from this exercise:
+
+1. Electronic check medium are the highest churners
+2. Contract Type - Monthly customers are more likely to churn because of no contract terms, as they are free to go customers.
+3. No Online security, No Tech Support category are high churners
+4. Non senior Citizens are high churners
+
+Note: There could be many more such insights, so take this as an assignment and try to get more insights :)
+
+
+
+
+
+
+
+
+
+
+
+
+

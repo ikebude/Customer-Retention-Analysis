@@ -1,13 +1,8 @@
- ## Project Title: Customer Churn Analysis.
- ****
- ![](customerng.png)
-****
+## Project Title: Customer Churn Analysis.
+
 ### Background Information on the Task.
 A few weeks after presenting your dashboard to the management, the Retention Manager from the telecom reaches out to you directly. He was impressed by your work and asked if you can put together a dashboard about customer retention.
-______
 
-![](customerpg.png)
-_____
 In addition, to better understand the data, the telecom Retention Manager has scheduled a meeting with the engagement partner at PwC to cover these points:
 
 - Customers in the telecom industry are hard-earned: we don’t want to lose them
@@ -18,14 +13,11 @@ In addition, to better understand the data, the telecom Retention Manager has sc
 - We would like to know more about our customers: visualized clearly so that it’s self-explanatory for our management
 - The Retention Manager has provided some information, have a look through the resource section.
 
-![](Churnpng.png)
-
 ### Project Objectives:
 This project will focus on analyzing the reasons for customers quitting and understanding where it actually has impact the most, then we look for Solutions that can drive the Retention Manager to a fruitful Operation.
 Particularly, we are going to be focusing on ..
  > Dragging out the reasons for the churning from the Majority of the dataset columns, running uni-variate and Bi-variate analysis between occasions to understand fully where people churned and where they didn't.
 
-![](Datacsv.png)
 
 ### Names of the Columns
 
@@ -64,24 +56,13 @@ Your colleague, the engagement partner, asks you to do the following tasks:
 >Define proper KPI's  
 Create a dashboard for the retention manager reflecting the KPI's  
 Prepare a nice report to him (the engagement partner) explaining your findings, and include suggestions as to what needs to be changed
-____
-R Prog I       | R Prog II
-:--------:|:-----------:
-![](Ranlysis1.png)| ![](Ranlysis2.png)
-____
+
 ### Deliverables:
 + A  Python Script containing generated coding for showing insights on the Churn Dataset
 + An interactive dashboard containing important KPI's and the rest of unanswered questions from the Churn dataset.
 + An  R Script containing generated coding for showing insights on the Churn Dataset
 + A report containing Useful Findings on Churn Dataset.
-****
-Python I       | Python II
-:--------:|:-----------:
-![](python1.png)| ![](python2.png)
-****
-**Python III**
-![](python3.png)
-______
+
 ### Constraints:
 - The data cannot be shared with unauthorized personnel.
 - The data cannot be modified or altered in any way.
